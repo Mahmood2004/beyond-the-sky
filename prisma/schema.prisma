@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(uuid())
+  name        String
+  email       String       @unique
+  password    String
+  image       String?
+  createdAt   DateTime     @default(now())
+  blogs       Blog[]
+  submissions Submission[]
+  permissions UserPermission[]
+}
+
+model UserPermission {
+  id         String @id @default(uuid())
+  userId     String
+  permission String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permission])
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  title       String
+  icon        String
+  features    String[]
+  createdAt   DateTime @default(now())
+  description String
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  title       String
+  category    String
+  excerpt     String
+  content     String
+  objectives  String[]
+  techStack   String[]
+  status      ProjectStatus
+  bannerURL   String
+  createdAt   DateTime      @default(now())
+  submissions Submission[]
+}
+
+model Blog {
+  id          String   @id @default(uuid())
+  title       String
+  category    String
+  excerpt     String
+  content     String
+  bannerURL   String
+  isPublished Boolean  @default(false)
+  authorId    String
+  createdAt   DateTime @default(now())
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model News {
+  id            String   @id @default(uuid())
+  title         String
+  excerpt       String
+  content       String
+  bannerURL     String
+  createdAt     DateTime @default(now())
+  referenceURLs String[]
+}
+
+model Submission {
+  id        String         @id @default(uuid())
+  userId    String?
+  projectId String?
+  name      String
+  email     String
+  subject   String
+  message   String
+  type      SubmissionType
+  isRead    Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  project   Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ProjectStatus {
+  ACTIVE
+  PLANNED
+  COMPLETED
+}
+
+enum SubmissionType {
+  CONTACT
+  PROJECT_INTEREST
+}
